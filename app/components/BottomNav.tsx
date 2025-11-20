@@ -8,7 +8,7 @@ const BottomMenu = () => {
   const menuItems = [
     { name: "Home", link: "/dashboard" },
     { name: "Expenses", link: "/dashboard/expenses" },
-    { name: "Add", link: "/dashboard/" },
+    { name: "Add", link: "/dashboard/expenses/add" },
     { name: "Friends", link: "/dashboard/friends" },
     { name: "Settings", link: "/dashboard/settings" },
   ];
