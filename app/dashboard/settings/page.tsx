@@ -5,7 +5,6 @@ import { cookies } from "next/headers";
 
 interface User {
   name: string;
-  username:string;
   email: string;
 }
 
@@ -23,7 +22,7 @@ const Settings = async () => {
         <div className="bg-white rounded-xl shadow-md p-4 mb-6">
           <h2 className="text-lg font-semibold">User Info</h2>
           <p className="text-gray-700 mt-2">
-            <span className="font-semibold">Name:</span> {loginUser.username}
+            <span className="font-semibold">Name:</span> {loginUser.name}
           </p>
           <p className="text-gray-700 mt-1">
             <span className="font-semibold">Email:</span> {loginUser.email}

@@ -19,23 +19,21 @@ export const login = async (formData:any) => {
    const requestData = Object.fromEntries(formData.entries()) as LoginFormData;
    const {email,password} = requestData;
 
-  const res = await fetch('https://dummyjson.com/auth/login', {
+  const res = await fetch(`${process.env.API_URL}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        username: 'emilys',
-        password: 'emilyspass',
+        email: email,
+        password: password,
         // expiresInMins: 30, // optional, defaults to 60
       }),
-      // credentials: 'include' // Include cookies (e.g., accessToken) in the request
+      // credentials: 'include' // Include cookies (e.g., access_token) in the request
     });
-
   const loginUser = await res.json();
-
-  if (loginUser.accessToken) {
+  if (loginUser.access_token) {
     const cookieStore = await cookies();
 
-    cookieStore.set("token", loginUser.accessToken, {
+    cookieStore.set("token", loginUser.access_token, {
       httpOnly: true,
       secure: true,
       path: "/",
@@ -53,7 +51,7 @@ export const login = async (formData:any) => {
 
     redirect("/dashboard");
   } else {
-    console.log("invalid email or password");
+    throw new Error("Invalid email or password");
   }
 }
 
@@ -61,32 +59,17 @@ export const login = async (formData:any) => {
 export const registerUser = async (formData:any) => {
     
    const requestData = Object.fromEntries(formData.entries()) as RegisterFormData;
-   const {name,email,password} = requestData;
-  //  throw new Error("Username and password are required");
-
-  const res = await fetch('https://dummyjson.com/auth/login', {
+  const res = await fetch(`${process.env.API_URL}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        username: 'emilys',
-        password: 'emilyspass',
-        // expiresInMins: 30, // optional, defaults to 60
-      }),
-      // credentials: 'include' // Include cookies (e.g., accessToken) in the request
+      body: JSON.stringify(requestData),
     });
 
-  const loginUser = await res.json();
-  if(loginUser.accessToken){
-
-       const cookieStore = await cookies();
-       cookieStore.set("token",loginUser.accessToken,{
-        httpOnly:true,
-        secure:true,
-        path:"/"
-       });
-    redirect('/dashboard');
+  const registeredUser = await res.json();
+  if(registeredUser.id){
+    redirect('/login');
   }else{
-    console.log('invalid email or password');
+    throw new Error("Something went wrong during registration");
   }
 }
 

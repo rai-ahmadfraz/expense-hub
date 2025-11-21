@@ -1,38 +1,44 @@
 import Link from 'next/link';
-import React from 'react';
+import { getFriends } from '@/app/api-services/friendService';
 
-async function getFriends() {
-  return [
-    { id: 1, name: 'Alice', email: 'alice@example.com' },
-    { id: 2, name: 'Bob', email: 'bob@example.com' },
-    { id: 3, name: 'Charlie', email: 'charlie@example.com' },
-  ];
+interface Friend {
+  id: number;
+  name: string;
+  email: string;  
 }
 
 const Friends = async () => {
-  const friends = await getFriends();
+  const friends: Friend[] = await getFriends();
 
   return (
     <div className="p-4">
-      {/* Header with title and Add Friend button */}
+      {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Friends List</h1>
-        <Link href="/dashboard/friends/add"
+        <Link
+          href="/dashboard/friends/add"
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
         >
           Add Friend
         </Link>
       </div>
 
-      {/* Friends list */}
-      <ul className="space-y-2">
-        {friends.map(friend => (
-          <li key={friend.id} className="p-2 border rounded shadow-sm">
-            <p className="font-semibold">{friend.name}</p>
-            <p className="text-gray-00">{friend.email}</p>
-          </li>
-        ))}
-      </ul>
+      {/* Empty State */}
+      {friends.length === 0 && (
+        <p className="text-gray-500 text-center py-4">No friends found.</p>
+      )}
+
+      {/* Friends List */}
+      {friends.length > 0 && (
+        <ul className="space-y-2">
+          {friends.map(friend => (
+            <li key={friend.id} className="p-2 border rounded shadow-sm">
+              <p className="font-semibold">{friend.name}</p>
+              <p className="text-gray-500">{friend.email}</p>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };

@@ -1,9 +1,27 @@
 "use client";
 import { useState, useEffect } from "react";
 import { getFriends } from "@/app/api-services/friendService";
+import { saveExpense,getLoginUser } from "@/app/api-services/expenseService";
 import Link from "next/link";
 
 const AddExpense = () => {
+
+  const [currentUser, setCurrentUser] = useState<{ id: number; name: string } | null>(null);
+
+  // Fetch logged-in user
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const user = await getLoginUser();
+        setCurrentUser(user);
+      } catch (error) {
+        console.error("Failed to fetch current user:", error);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
+
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [paidBy, setPaidBy] = useState("");
@@ -12,7 +30,7 @@ const AddExpense = () => {
 
   const [users, setUsers] = useState<Array<{ id: number; name: string }>>([]);
   const [participants, setParticipants] = useState<
-    Array<{ id: number; name: string; selected: boolean; share_value: string }>
+    Array<{ id: number; name: string; selected: boolean; share_value: string; fixed?: boolean }>
   >([]);
 
   const [validationMessage, setValidationMessage] = useState("");
@@ -30,17 +48,30 @@ const AddExpense = () => {
     fetchFriends();
   }, []);
 
-  // Sync participants with users
+  // Sync participants with users + include current user
   useEffect(() => {
-    setParticipants(
-      users.map((u) => ({
-        id: u.id,
-        name: u.name,
-        selected: false,
+    if (!currentUser) return;
+
+    const allParticipants = [
+      {
+        id: currentUser.id,
+        name: currentUser.name,
+        selected: true,
         share_value: "",
-      }))
-    );
-  }, [users]);
+        fixed: true, // always selected
+      },
+      ...users
+        .filter((u) => u.id !== currentUser.id)
+        .map((u) => ({
+          id: u.id,
+          name: u.name,
+          selected: false,
+          share_value: "",
+        })),
+    ];
+
+    setParticipants(allParticipants);
+  }, [users, currentUser]);
 
   // Auto-fill equal shares
   useEffect(() => {
@@ -59,6 +90,8 @@ const AddExpense = () => {
   }, [shareType, amount, participants.map((p) => p.selected).join(",")]);
 
   const toggleParticipant = (id: number) => {
+    const participant = participants.find((p) => p.id === id);
+    if (participant?.fixed) return; // cannot unselect current user
     setParticipants((prev) =>
       prev.map((p) => (p.id === id ? { ...p, selected: !p.selected } : p))
     );
@@ -103,7 +136,7 @@ const AddExpense = () => {
     setValidationMessage("");
   }, [participants, shareType, amount, isPersonal]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (validationMessage) return;
 
     const selected = participants.filter((p) => p.selected);
@@ -111,7 +144,7 @@ const AddExpense = () => {
     const payload = {
       name,
       amount: Number(amount),
-      paid_id: paidBy,
+      paid_id: Number(paidBy),
       is_personal: isPersonal,
       participants: isPersonal
         ? undefined
@@ -123,6 +156,7 @@ const AddExpense = () => {
     };
 
     console.log("Final Payload:", payload);
+    await saveExpense(payload);
   };
 
   const isSaveDisabled =
@@ -130,14 +164,9 @@ const AddExpense = () => {
 
   return (
     <div className="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-lg space-y-6">
-      {/* <h2 className="text-2xl font-bold text-gray-800">Add Expense</h2> */}
       <div className="flex justify-between items-center mt-2 mb-3">
         <h2 className="text-2xl font-semibold">Add Expense</h2>
-
-        <Link
-          href="/dashboard/expenses"
-          className="text-white-600 hover:text-white-800 text-lg"
-        >
+        <Link href="/dashboard/expenses" className="text-gray-600 hover:text-gray-800 text-lg">
           Back
         </Link>
       </div>
@@ -201,11 +230,13 @@ const AddExpense = () => {
               onChange={(e) => setPaidBy(e.target.value)}
             >
               <option value="">Select person</option>
-              {users.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
-                </option>
-              ))}
+              {participants
+                .filter((p) => p.selected) // only selected participants
+                .map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} {p.fixed && "(You)"}
+                  </option>
+                ))}
             </select>
           </div>
 
@@ -235,8 +266,9 @@ const AddExpense = () => {
                       checked={p.selected}
                       onChange={() => toggleParticipant(p.id)}
                       className="w-5 h-5"
+                      disabled={p.fixed} // disable current user
                     />
-                    {p.name}
+                    {p.name} {p.fixed && "(You)"}
                   </label>
 
                   {p.selected && shareType !== "equal" && (
@@ -262,19 +294,17 @@ const AddExpense = () => {
 
       {/* Buttons */}
       <div className="flex justify-end gap-4">
-
         <button
-            className={`px-5 py-3 rounded-lg text-white font-medium transition-all duration-200 shadow ${
+          className={`px-5 py-3 rounded-lg text-white font-medium transition-all duration-200 shadow ${
             isSaveDisabled
-                ? "bg-gray-300 cursor-not-allowed opacity-70"
-                : "bg-gray-800 hover:bg-gray-900"
-            }`}
-            onClick={handleSubmit}
-            disabled={isSaveDisabled}
+              ? "bg-gray-300 cursor-not-allowed opacity-70"
+              : "bg-gray-800 hover:bg-gray-900"
+          }`}
+          onClick={handleSubmit}
+          disabled={isSaveDisabled}
         >
-            Save Expense
-        </button> 
-       
+          Save Expense
+        </button>
       </div>
     </div>
   );

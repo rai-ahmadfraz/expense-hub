@@ -1,12 +1,12 @@
 "use server";
 import React from "react";
-
+import { getExpenseDashboardSummary } from "@/app/api-services/expenseService";
 interface Summary {
   netBalance: number;
   overallStatus: string;
 }
 
-interface User {
+interface UserBalance {
   userId: number;
   userName: string;
   userEmail: string;
@@ -14,29 +14,17 @@ interface User {
   status: string;
 }
 
-const summary: Summary = {
-  netBalance: -35,
-  overallStatus: "you owe more than you lent",
-};
+interface ExpenseSummaryResponse {
+  summary: Summary;
+  users: UserBalance[];
+}
 
-const users: User[] = [
-  {
-    userId: 5,
-    userName: "John Doe",
-    userEmail: "john@example.com",
-    balance: 50,
-    status: "you owe",
-  },
-  {
-    userId: 7,
-    userName: "Rai Ahmad",
-    userEmail: "rai@example.com",
-    balance: -85,
-    status: "you are owed",
-  },
-];
 
-const Dashboard: React.FC = () => {
+const Dashboard: React.FC = async () => {
+
+  const expenseSummary: ExpenseSummaryResponse = await getExpenseDashboardSummary();
+
+  const { summary, users } = expenseSummary;
   return (
     <div className="min-h-screen bg-gray-100 p-4 space-y-6">
       <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
@@ -52,10 +40,10 @@ const Dashboard: React.FC = () => {
           <p className="text-sm text-gray-500">Net Balance</p>
           <p
             className={`text-lg font-semibold ${
-              summary.netBalance < 0 ? "text-green-600" : "text-red-500"
+              summary.netBalance < 0 ? "text-red-600" : "text-green-500"
             }`}
           >
-            ${summary.netBalance}
+            ${Math.abs(summary.netBalance)}
           </p>
         </div>
       </div>
@@ -65,7 +53,7 @@ const Dashboard: React.FC = () => {
         <h1 className="text-2xl font-bold mb-4">Users</h1>
 
         {users.map((user) => {
-          const amountColor = user.balance < 0 ? "text-green-600" : "text-red-500";
+          const amountColor = user.balance < 0 ? "text-red-500" : "text-green-600";
 
           return (
             <div
@@ -81,7 +69,7 @@ const Dashboard: React.FC = () => {
                 <p className={`font-bold text-lg ${amountColor}`}>
                   ${Math.abs(user.balance)}
                 </p>
-                <p className="text-gray-400 text-xs">{user.status}</p>
+                <p className="text-gray-400 text-xs">{user.status == 'owes you' ? 'have to give you':'you have to give' }</p>
               </div>
             </div>
           );

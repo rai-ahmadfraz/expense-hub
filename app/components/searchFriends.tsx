@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react'
-import { searchUsers } from '@/app/api-services/friendService'
+import { searchUsers,addFriend } from '@/app/api-services/friendService'
 import Link from 'next/link'
 
 interface User {
@@ -16,12 +16,16 @@ const SearchFriends = () => {
     const value = e.target.value.trim();
 
     if (!value) {
-      setResults([]);   // Clear results when empty
+      setResults([]);
       return;
     }
 
     const list = await searchUsers(value);
     setResults(list);
+  }
+
+  const addUser = async (userId:number) => {
+    addFriend(userId);
   }
 
   return (
@@ -55,6 +59,7 @@ const SearchFriends = () => {
 
             <button 
               className="px-3 py-1 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600"
+              onClick={() => addUser(u.id)}
             >
               Add
             </button>

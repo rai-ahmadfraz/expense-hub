@@ -1,34 +1,18 @@
 "use server";
 
-let friends = [
-  { id: 1, name: "Alice", email: "alice@example.com" },
-  { id: 2, name: "Bob", email: "bob@example.com" },
-];
+import { redirect } from "next/navigation";
+import apiFetch from "./apiClient";
 
-let users = [
-  { id: 100, name: "John Doe", email: "john@gmail.com" },
-  { id: 103, name: "John Bay", email: "johnbay@gmail.com" },
-  { id: 101, name: "Sarah Khan", email: "sarah@gmail.com" },
-  { id: 102, name: "Michael Lee", email: "michael@gmail.com" },
-];
-
-// fetch friends
 export async function getFriends() {
-  return friends;
+  return await apiFetch("/friends", { method: "GET" }) || [];
 }
 
-// search users (NOT friends)
-export async function searchUsers(query: string) {
-  return users.filter(u =>
-    u.name.toLowerCase().includes(query.toLowerCase())
-  );
+export async function searchUsers(term: string) {
+  if (!term || term.length < 3) return [];
+  return await apiFetch(`/users/search/${term}`, { method: "GET" }) || [];
 }
 
-
-// add friend action
 export async function addFriend(id: number) {
-  const user = users.find((u) => u.id === id);
-  if (!user) return;
-
-  friends.push(user);
+  await apiFetch(`/friends/add/${id}`, { method: "GET" });
+  redirect("/dashboard/friends");
 }
