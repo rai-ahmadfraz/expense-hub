@@ -33,16 +33,11 @@ const SearchFriends = () => {
       <div className="flex justify-between items-center mt-2 mb-3">
         <h2 className="text-xl font-semibold">Search Users</h2>
 
-        <Link
-          href="/dashboard/friends"
-          className="text-white-600 hover:text-white-800 text-lg"
-        >
-          Back
-        </Link>
+        <Link href="/dashboard/friends" className="text-base-content/70 hover:text-base-content text-lg">Back</Link>
       </div>
       <input
         placeholder="Search users..."
-        className="border px-3 py-2 rounded w-full mb-4"
+        className="border border-base-300 px-3 py-2 rounded w-full mb-4 placeholder:text-base-content/60"
         onChange={handleSearch}
       />
 
@@ -54,7 +49,7 @@ const SearchFriends = () => {
           >
             <div>
               <p className="font-semibold">{u.name}</p>
-              <p className="text-gray-500">{u.email}</p>
+              <p className="text-base-content/70">{u.email}</p>
             </div>
 
             <button 

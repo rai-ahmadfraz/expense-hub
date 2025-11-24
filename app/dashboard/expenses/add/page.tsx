@@ -163,19 +163,19 @@ const AddExpense = () => {
     Boolean(validationMessage) || !name || !amount || (!isPersonal && !paidBy);
 
   return (
-    <div className="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-lg space-y-6">
+    <div className="max-w-2xl mx-auto bg-base-100 p-8 rounded-2xl shadow-lg space-y-6 pb-28">
       <div className="flex justify-between items-center mt-2 mb-3">
         <h2 className="text-2xl font-semibold">Add Expense</h2>
-        <Link href="/dashboard/expenses" className="text-gray-600 hover:text-gray-800 text-lg">
+        <Link href="/dashboard/expenses" className="text-base-content/70 hover:text-base-content text-lg">
           Back
         </Link>
       </div>
 
       {/* Expense Name */}
       <div>
-        <label className="block text-gray-700 mb-2 font-medium">Expense Name</label>
+        <label className="block text-base-content mb-2 font-medium">Expense Name</label>
         <input
-          className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full border border-base-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder:text-base-content/60"
           placeholder="Enter expense name"
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -184,10 +184,10 @@ const AddExpense = () => {
 
       {/* Expense Amount */}
       <div>
-        <label className="block text-gray-700 mb-2 font-medium">Expense Amount</label>
+        <label className="block text-base-content mb-2 font-medium">Expense Amount</label>
         <input
           type="number"
-          className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full border border-base-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder:text-base-content/60"
           placeholder="Enter amount"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
@@ -196,9 +196,9 @@ const AddExpense = () => {
 
       {/* Is Personal */}
       <div>
-        <span className="block text-gray-700 mb-2 font-medium">Is Personal?</span>
+  <span className="block text-base-content mb-2 font-medium">Is Personal?</span>
         <div className="flex gap-6">
-          <label className="flex items-center gap-2">
+            <label className="flex items-center gap-2">
             <input
               type="radio"
               name="isPersonal"
@@ -207,7 +207,7 @@ const AddExpense = () => {
             />
             Yes
           </label>
-          <label className="flex items-center gap-2">
+            <label className="flex items-center gap-2">
             <input
               type="radio"
               name="isPersonal"
@@ -223,9 +223,9 @@ const AddExpense = () => {
         <>
           {/* Paid By */}
           <div>
-            <label className="block text-gray-700 mb-2 font-medium">Paid By</label>
+            <label className="block text-base-content mb-2 font-medium">Paid By</label>
             <select
-              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full border border-base-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
               value={paidBy}
               onChange={(e) => setPaidBy(e.target.value)}
             >
@@ -242,9 +242,9 @@ const AddExpense = () => {
 
           {/* Share Type */}
           <div>
-            <label className="block text-gray-700 mb-2 font-medium">Share Type</label>
+            <label className="block text-base-content mb-2 font-medium">Share Type</label>
             <select
-              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full border border-base-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
               value={shareType}
               onChange={(e) => setShareType(e.target.value as any)}
             >
@@ -256,8 +256,8 @@ const AddExpense = () => {
 
           {/* Participants */}
           <div>
-            <label className="block text-gray-700 mb-2 font-medium">Participants</label>
-            <div className="border border-gray-300 rounded-lg p-4 space-y-3">
+            <label className="block text-base-content mb-2 font-medium">Participants</label>
+            <div className="border border-base-300 rounded-lg p-4 space-y-3">
               {participants.map((p) => (
                 <div key={p.id} className="flex items-center justify-between">
                   <label className="flex items-center gap-3">
@@ -274,7 +274,7 @@ const AddExpense = () => {
                   {p.selected && shareType !== "equal" && (
                     <input
                       type="number"
-                      className="w-28 border border-gray-300 rounded-lg p-2 text-right focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      className="w-28 border border-base-300 rounded-lg p-2 text-right focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder:text-base-content/60"
                       placeholder={shareType === "percentage" ? "%" : "Amount"}
                       value={p.share_value}
                       onChange={(e) => updateShareValue(p.id, e.target.value)}
@@ -293,7 +293,7 @@ const AddExpense = () => {
       )}
 
       {/* Buttons */}
-      <div className="flex justify-end gap-4">
+        <div className="flex justify-end gap-4">
         <button
           className={`px-5 py-3 rounded-lg text-white font-medium transition-all duration-200 shadow ${
             isSaveDisabled

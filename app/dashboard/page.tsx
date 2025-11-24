@@ -26,18 +26,18 @@ const Dashboard: React.FC = async () => {
 
   const { summary, users } = expenseSummary;
   return (
-    <div className="min-h-screen bg-gray-100 p-4 space-y-6">
+  <div className="min-h-screen bg-base-200 p-4 space-y-6">
       <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
 
       {/* Summary Section */}
-      <div className="bg-white p-5 rounded-2xl shadow-lg flex justify-between items-center border-l-4 border-blue-500">
+      <div className="bg-base-100 p-5 rounded-2xl shadow-lg flex justify-between items-center border-l-4 border-blue-500">
         <div>
-          <h1 className="text-xl font-bold text-gray-800 mb-1">Summary</h1>
-          <p className="text-gray-600 text-sm">{summary.overallStatus}</p>
+          <h1 className="text-xl font-bold text-base-content mb-1">Summary</h1>
+          <p className="text-base-content/70 text-sm">{summary.overallStatus}</p>
         </div>
 
         <div className="text-right">
-          <p className="text-sm text-gray-500">Net Balance</p>
+          <p className="text-sm text-base-content/70">Net Balance</p>
           <p
             className={`text-lg font-semibold ${
               summary.netBalance < 0 ? "text-red-600" : "text-green-500"
@@ -58,18 +58,18 @@ const Dashboard: React.FC = async () => {
           return (
             <div
               key={user.userId}
-              className="bg-white p-4 rounded-2xl shadow-md flex justify-between items-center border-l-4 border-blue-500"
+              className="p-4 rounded-2xl shadow-md flex justify-between items-center border-l-4 border-blue-500"
             >
               <div>
-                <h2 className="text-lg font-semibold">{user.userName}</h2>
-                <p className="text-gray-500 text-sm">{user.userEmail}</p>
+                    <h2 className="text-lg font-semibold">{user.userName}</h2>
+                    <p className="text-base-content/70 text-sm">{user.userEmail}</p>
               </div>
 
               <div className="text-right">
                 <p className={`font-bold text-lg ${amountColor}`}>
                   ${Math.abs(user.balance)}
                 </p>
-                <p className="text-gray-400 text-xs">{user.status == 'owes you' ? 'have to give you':'you have to give' }</p>
+                <p className="text-base-content/60 text-xs">{user.status == 'owes you' ? 'have to give you':'you have to give' }</p>
               </div>
             </div>
           );

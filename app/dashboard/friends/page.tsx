@@ -11,7 +11,7 @@ const Friends = async () => {
   const friends: Friend[] = await getFriends();
 
   return (
-    <div className="p-4">
+  <div className="p-4">
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Friends List</h1>
@@ -25,7 +25,7 @@ const Friends = async () => {
 
       {/* Empty State */}
       {friends.length === 0 && (
-        <p className="text-gray-500 text-center py-4">No friends found.</p>
+        <p className="text-base-content/60 text-center py-4">No friends found.</p>
       )}
 
       {/* Friends List */}
@@ -34,7 +34,7 @@ const Friends = async () => {
           {friends.map(friend => (
             <li key={friend.id} className="p-2 border rounded shadow-sm">
               <p className="font-semibold">{friend.name}</p>
-              <p className="text-gray-500">{friend.email}</p>
+              <p className="text-base-content/70">{friend.email}</p>
             </li>
           ))}
         </ul>
