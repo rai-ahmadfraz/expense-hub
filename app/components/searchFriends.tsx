@@ -50,7 +50,7 @@ const SearchFriends = () => {
           >
             <div>
               <p className="font-semibold">{u.name}</p>
-              <p className="text-gray-500">{u.email}</p>
+              <p className="text-base-500">{u.email}</p>
             </div>
 
             <button 

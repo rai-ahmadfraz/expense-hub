@@ -29,7 +29,7 @@ const Friends = async () => {
         {friends.map(friend => (
           <li key={friend.id} className="p-2 border rounded shadow-sm">
             <p className="font-semibold">{friend.name}</p>
-            <p className="text-gray-00">{friend.email}</p>
+            <p className="text-base-00">{friend.email}</p>
           </li>
         ))}
       </ul>

@@ -66,7 +66,7 @@ const BottomMenu = () => {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 z-50 safe-area-inset-bottom">
+    <div className="fixed bottom-0 left-0 w-full bg-base-100 border-t border-base-200 z-50 safe-area-inset-bottom">
       <div className="flex justify-between items-center px-4 py-3">
         {menuItems.map((item, index) => (
           <Link 
@@ -77,13 +77,13 @@ const BottomMenu = () => {
             <button
               onClick={() => setActive(item.name)}
               className={`flex flex-col items-center w-full py-1 transition-colors duration-200
-                ${active === item.name ? "text-blue-600" : "text-gray-500"}
+                ${active === item.name ? "text-primary" : "text-base-content/60"}
               `}
             >
               {/* Add Button with Special Positioning */}
               {item.name === "Add" ? (
                 <div className="relative -top-6">
-                  <div className="bg-blue-600 text-white p-4 rounded-full shadow-lg">
+                  <div className="bg-primary text-primary-content p-4 rounded-full shadow-lg">
                     <div className="size-6">
                       {item.icon}
                     </div>
@@ -92,7 +92,7 @@ const BottomMenu = () => {
               ) : (
                 /* Regular Menu Items */
                 <div className={`p-2 rounded-lg transition-colors ${
-                  active === item.name ? "bg-blue-50" : ""
+                  active === item.name ? "bg-base-200" : ""
                 }`}>
                   <div className="size-5">
                     {item.icon}
