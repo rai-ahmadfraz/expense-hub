@@ -7,9 +7,9 @@ const FriendsPage = async () => {
   return (
     <div className="max-w-7xl mx-auto">
       {/* Header */}
-        <div className="border-b border-base-300 p-2.5 flex items-center justify-between">
-            <h1 className="text-3xl font-bold">Your Friends</h1>
-            <Link href="/dashboard/friends/add" className="btn btn-primary btn-md">
+        <div className="border-b border-base-300 p-3 flex items-center justify-between">
+            <h1 className="text-xl font-bold">Your Friends</h1>
+            <Link href="/dashboard/friends/add" className="btn btn-primary btn-sm">
                 Add Friend
             </Link>
         </div>
