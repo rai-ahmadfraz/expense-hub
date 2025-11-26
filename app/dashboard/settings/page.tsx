@@ -15,13 +15,13 @@ const Settings = async () => {
   const loginUser: User | null = cookieValue ? JSON.parse(cookieValue) : null;
 
   return (
-    <div className="max-w-4xl mx-auto p-4 pb-24 space-y-8">
-      <h1 className="text-4xl font-bold text-base-content mb-8">Settings</h1>
+    <div className="max-w-4xl mx-auto p-4 pb-24 space-y-6 sm:space-y-8">
+      <h1 className="text-3xl sm:text-4xl font-bold text-base-content">Settings</h1>
 
       {/* Profile Section */}
       <div className="card bg-base-100 shadow-xl">
         <div className="card-body">
-          <h2 className="card-title text-2xl mb-4">Profile</h2>
+          <h2 className="card-title text-xl sm:text-2xl mb-4">Profile</h2>
           {loginUser && (
             <div className="space-y-4">
               <div>
@@ -56,7 +56,7 @@ const Settings = async () => {
       {/* Appearance Section */}
       <div className="card bg-base-100 shadow-xl">
         <div className="card-body">
-          <h2 className="card-title text-2xl mb-4">Appearance</h2>
+          <h2 className="card-title text-xl sm:text-2xl mb-4">Appearance</h2>
           <div className="form-control">
             <label className="label cursor-pointer">
               <span className="label-text">Theme</span>
@@ -78,7 +78,7 @@ const Settings = async () => {
       {/* Account Section */}
       <div className="card bg-base-100 shadow-xl">
         <div className="card-body">
-          <h2 className="card-title text-2xl mb-4">Account</h2>
+          <h2 className="card-title text-xl sm:text-2xl mb-4">Account</h2>
           <div className="space-y-4">
             <Link href="/change-password" legacyBehavior>
               <a className="btn btn-outline w-full">Change Password</a>
