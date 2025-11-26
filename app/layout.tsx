@@ -1,6 +1,6 @@
 import "./globals.css";
 import ToastProvider from "./components/ToastProvider";
-import { cookies } from "next/headers";
+import { getTheme } from "@/app/api-services/commonService";
 import React from "react";
 
 export default async function RootLayout({
@@ -9,11 +9,10 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
 
-  const cookieStore = await cookies();
-  const cookieValue = cookieStore.get("theme")?.value;
+  const theme = await getTheme();
 
   return (
-    <html lang="en" data-theme={cookieValue || "light"}>
+    <html lang="en" data-theme={theme || "light"}>
       <body>
         {children}
         <ToastProvider />

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import LogoutBtn from "@/app/components/logoutBtn";
 import { cookies } from "next/headers";
+import ThemeOptions from "@/app/components/ThemeOptions";
 
 interface User {
   name: string;
@@ -40,12 +41,7 @@ const Settings = async () => {
               <label className="label">
                 <span className="label-text text-base-content">Select Theme</span>
               </label>
-              <select className="select select-bordered">
-                <option>Light</option>
-                <option>Dark</option>
-                <option>Cupcake</option>
-                <option>Synthwave</option>
-              </select>
+              <ThemeOptions />
             </div>
           </div>
         </div>
