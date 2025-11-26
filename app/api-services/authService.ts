@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { redirect  } from "next/navigation";
-
+import { setFlashMessage } from "./commonService";
 interface LoginFormData {
   email: string;
   password: string;
@@ -30,9 +30,8 @@ export const login = async (formData:any) => {
       // credentials: 'include' // Include cookies (e.g., access_token) in the request
     });
   const loginUser = await res.json();
+   const cookieStore = await cookies();
   if (loginUser.access_token) {
-    const cookieStore = await cookies();
-
     cookieStore.set("token", loginUser.access_token, {
       httpOnly: true,
       secure: true,
@@ -48,10 +47,10 @@ export const login = async (formData:any) => {
         path: "/",
       }
     );
-
+    await setFlashMessage("Login Successful");
     redirect("/dashboard");
   } else {
-    throw new Error("Invalid email or password");
+    await setFlashMessage("Login Failed: Invalid credentials");
   }
 }
 
@@ -69,7 +68,7 @@ export const registerUser = async (formData:any) => {
   if(registeredUser.id){
     redirect('/login');
   }else{
-    throw new Error("Something went wrong during registration");
+    await setFlashMessage("Registration Failed: Invalid data  provided");
   }
 }
 

@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import apiFetch from "./apiClient";
 import { cookies } from "next/headers"; 
 
-
 export async function getExpenseDashboardSummary() {
   return await apiFetch("/expenses/summary", { method: "GET" }) || [];
 }

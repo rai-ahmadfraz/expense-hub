@@ -16,3 +16,55 @@ export const getTheme = async () => {
     const theme = cookieStore.get("theme")?.value || 'light';
     return theme;
 }
+
+export const setFlashMessage = async (message: string) => {
+  const cookieStore = await cookies();
+  cookieStore.set("flash_message", message, {
+    httpOnly: false,
+    secure: true,
+    maxAge: 5,
+  });
+};
+
+
+export const getFlashMessage = async () => {
+    const cookieStore = await cookies();
+    const message = cookieStore.get("flash_message")?.value || '';
+    return message;
+}
+
+export const deleteFlashMessage = async () => {
+  (await cookies()).set("flash_message", '', {
+    httpOnly: false,
+    secure: true,
+    maxAge: 0,
+  });
+}
+
+
+export const setToken = async (token: string) => {
+  const cookieStore = await cookies();
+  cookieStore.set("token",token, {
+    httpOnly: true,
+    secure: true,
+    path: "/",
+  });
+}
+export const getToken = async () => {
+  const cookieStore = await cookies();
+  return cookieStore.get("token")?.value || '' ;
+}
+
+
+export const setUser = async (user:any) => {
+  const cookieStore = await cookies();
+  cookieStore.set("login-user",JSON.stringify(user), {
+    httpOnly: true,
+    secure: true,
+    path: "/",
+  });
+}
+export const getUser = async () => {
+  const cookieStore = await cookies();
+  return JSON.parse(cookieStore.get("login-user")?.value || '{}');
+}
