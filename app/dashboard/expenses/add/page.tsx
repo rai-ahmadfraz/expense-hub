@@ -1,280 +1,247 @@
-"use client";
-import { useState, useEffect } from "react";
-import { getFriends } from "@/app/api-services/friendService";
-import Link from "next/link";
+'use client';
+import { useState, useEffect, useMemo } from 'react';
+import { getFriends } from '@/app/api-services/friendService';
+import Link from 'next/link';
 
 const AddExpense = () => {
-  const [name, setName] = useState("");
-  const [amount, setAmount] = useState("");
-  const [paidBy, setPaidBy] = useState("");
-  const [isPersonal, setIsPersonal] = useState<boolean | null>(false);
-  const [shareType, setShareType] = useState<"equal" | "percentage" | "fixed">("equal");
+  const [name, setName] = useState('');
+  const [amount, setAmount] = useState('');
+  const [paidBy, setPaidBy] = useState('');
+  const [isPersonal, setIsPersonal] = useState<boolean>(false);
+  const [shareType, setShareType] = useState<'equal' | 'percentage' | 'fixed'>('equal');
 
   const [users, setUsers] = useState<Array<{ id: number; name: string }>>([]);
   const [participants, setParticipants] = useState<
     Array<{ id: number; name: string; selected: boolean; share_value: string }>
   >([]);
 
-  const [validationMessage, setValidationMessage] = useState("");
+  const [validationMessage, setValidationMessage] = useState('');
 
-  // Load friends
   useEffect(() => {
     const fetchFriends = async () => {
       try {
         const data = await getFriends();
         setUsers(data);
       } catch (error) {
-        console.error("Failed to fetch friends:", error);
+        console.error('Failed to fetch friends:', error);
       }
     };
     fetchFriends();
   }, []);
 
-  // Sync participants with users
   useEffect(() => {
     setParticipants(
-      users.map((u) => ({
+      users.map(u => ({
         id: u.id,
         name: u.name,
         selected: false,
-        share_value: "",
+        share_value: '',
       }))
     );
   }, [users]);
 
-  // Auto-fill equal shares
+  const selectedParticipants = useMemo(() => participants.filter(p => p.selected), [participants]);
+
   useEffect(() => {
-    if (shareType !== "equal") return;
-
-    const selected = participants.filter((p) => p.selected);
-    if (selected.length === 0) return;
-
-    const equalValue = (Number(amount) / selected.length).toFixed(2);
-    setParticipants((prev) =>
-      prev.map((p) => ({
-        ...p,
-        share_value: p.selected ? equalValue : "",
-      }))
-    );
-  }, [shareType, amount, participants.map((p) => p.selected).join(",")]);
+    if (shareType === 'equal' && selectedParticipants.length > 0) {
+      const equalValue = (Number(amount) / selectedParticipants.length).toFixed(2);
+      setParticipants(prev =>
+        prev.map(p => ({ ...p, share_value: p.selected ? equalValue : '' }))
+      );
+    }
+  }, [shareType, amount, selectedParticipants.length]);
 
   const toggleParticipant = (id: number) => {
-    setParticipants((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, selected: !p.selected } : p))
+    setParticipants(prev =>
+      prev.map(p => (p.id === id ? { ...p, selected: !p.selected } : p))
     );
   };
 
   const updateShareValue = (id: number, value: string) => {
-    setParticipants((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, share_value: value } : p))
+    setParticipants(prev =>
+      prev.map(p => (p.id === id ? { ...p, share_value: value } : p))
     );
   };
 
-  // Validate shares
   useEffect(() => {
     if (isPersonal) {
-      setValidationMessage("");
+      setValidationMessage('');
       return;
     }
 
-    const selected = participants.filter((p) => p.selected);
-
-    if (selected.length === 0) {
-      setValidationMessage("Select at least one participant");
+    if (selectedParticipants.length === 0) {
+      setValidationMessage('Select at least one participant.');
       return;
     }
 
-    if (shareType === "percentage") {
-      const total = selected.reduce((sum, p) => sum + Number(p.share_value || 0), 0);
+    if (shareType === 'percentage') {
+      const total = selectedParticipants.reduce((sum, p) => sum + Number(p.share_value || 0), 0);
       if (total !== 100) {
-        setValidationMessage(`Total percentage must be 100. Current: ${total}`);
+        setValidationMessage(`Total percentage must be 100. Current: ${total}%`);
         return;
       }
     }
 
-    if (shareType === "fixed") {
-      const total = selected.reduce((sum, p) => sum + Number(p.share_value || 0), 0);
+    if (shareType === 'fixed') {
+      const total = selectedParticipants.reduce((sum, p) => sum + Number(p.share_value || 0), 0);
       if (Number(amount) && total !== Number(amount)) {
-        setValidationMessage(`Total fixed shares must equal ${amount}. Current: ${total}`);
+        setValidationMessage(`Total shares must equal the expense amount. Current: ${total}`);
         return;
       }
     }
 
-    setValidationMessage("");
-  }, [participants, shareType, amount, isPersonal]);
+    setValidationMessage('');
+  }, [participants, shareType, amount, isPersonal, selectedParticipants]);
 
   const handleSubmit = () => {
     if (validationMessage) return;
 
-    const selected = participants.filter((p) => p.selected);
-
     const payload = {
       name,
       amount: Number(amount),
-      paid_id: paidBy,
+      paid_by_id: paidBy,
       is_personal: isPersonal,
       participants: isPersonal
-        ? undefined
-        : selected.map((p) =>
-            shareType === "equal"
-              ? { id: p.id, share_type: "equal" }
-              : { id: p.id, share_type: shareType, share_value: Number(p.share_value) }
-          ),
+        ? []
+        : selectedParticipants.map(p => ({
+            id: p.id,
+            share_type: shareType,
+            share_value: shareType === 'equal' ? undefined : Number(p.share_value),
+          })),
     };
 
-    console.log("Final Payload:", payload);
+    console.log('Final Payload:', payload);
+    // Here you would typically send the payload to your API
   };
 
   const isSaveDisabled =
     Boolean(validationMessage) || !name || !amount || (!isPersonal && !paidBy);
 
   return (
-    <div className="max-w-2xl mx-auto bg-base-100 p-8 rounded-2xl shadow-lg space-y-6">
-      {/* <h2 className="text-2xl font-bold text-base-content">Add Expense</h2> */}
-      <div className="flex justify-between items-center mt-2 mb-3">
-        <h2 className="text-2xl font-semibold">Add Expense</h2>
-
-        <Link
-          href="/dashboard/expenses"
-          className="text-primary hover:underline text-lg"
-        >
+    <div className='max-w-2xl mx-auto bg-base-100 p-6 rounded-2xl shadow-lg space-y-6 pb-24'>
+      <div className='flex justify-between items-center mb-4'>
+        <h1 className='text-3xl font-bold text-base-content'>Add Expense</h1>
+        <Link href='/dashboard/expenses' className='btn btn-ghost text-primary'>
           Back
         </Link>
       </div>
 
-      {/* Expense Name */}
-      <div>
-        <label className="block text-base-content mb-2 font-medium">Expense Name</label>
+      <div className='form-control space-y-4'>
         <input
-          className="w-full border border-base-200 bg-base-100 text-base-content rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary"
-          placeholder="Enter expense name"
+          type='text'
+          className='input input-bordered w-full'
+          placeholder='Expense Name'
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={e => setName(e.target.value)}
         />
-      </div>
 
-      {/* Expense Amount */}
-      <div>
-        <label className="block text-base-content mb-2 font-medium">Expense Amount</label>
         <input
-          type="number"
-          className="w-full border border-base-200 bg-base-100 text-base-content rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary"
-          placeholder="Enter amount"
+          type='number'
+          className='input input-bordered w-full'
+          placeholder='Amount'
           value={amount}
-          onChange={(e) => setAmount(e.target.value)}
+          onChange={e => setAmount(e.target.value)}
         />
-      </div>
 
-      {/* Is Personal */}
-      <div>
-        <span className="block text-base-content mb-2 font-medium">Is Personal?</span>
-        <div className="flex gap-6">
-          <label className="flex items-center gap-2 text-base-content">
-            <input
-              type="radio"
-              name="isPersonal"
-              onChange={() => setIsPersonal(true)}
-              className="w-5 h-5"
-            />
-            Yes
-          </label>
-          <label className="flex items-center gap-2 text-base-content">
-            <input
-              type="radio"
-              name="isPersonal"
-              onChange={() => setIsPersonal(false)}
-              className="w-5 h-5"
-            />
-            No
-          </label>
+        <div className='flex items-center space-x-4'>
+          <span className='font-medium text-base-content'>Is this a personal expense?</span>
+          <div className='flex gap-4'>
+            <label className='label cursor-pointer'>
+              <input
+                type='radio'
+                name='isPersonal'
+                className='radio radio-primary'
+                checked={isPersonal === true}
+                onChange={() => setIsPersonal(true)}
+              />
+              <span className='label-text ml-2'>Yes</span>
+            </label>
+            <label className='label cursor-pointer'>
+              <input
+                type='radio'
+                name='isPersonal'
+                className='radio radio-primary'
+                checked={isPersonal === false}
+                onChange={() => setIsPersonal(false)}
+              />
+              <span className='label-text ml-2'>No</span>
+            </label>
+          </div>
         </div>
-      </div>
 
-      {!isPersonal && (
-        <>
-          {/* Paid By */}
-          <div>
-            <label className="block text-base-content mb-2 font-medium">Paid By</label>
+        {!isPersonal && (
+          <div className='space-y-4 p-4 border border-base-300 rounded-lg'>
             <select
-              className="w-full border border-base-200 bg-base-100 text-base-content rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary"
+              className='select select-bordered w-full'
               value={paidBy}
-              onChange={(e) => setPaidBy(e.target.value)}
+              onChange={e => setPaidBy(e.target.value)}
             >
-              <option value="">Select person</option>
-              {users.map((u) => (
+              <option value=''>Who paid?</option>
+              {users.map(u => (
                 <option key={u.id} value={u.id}>
                   {u.name}
                 </option>
               ))}
             </select>
-          </div>
 
-          {/* Share Type */}
-          <div>
-            <label className="block text-base-content mb-2 font-medium">Share Type</label>
             <select
-              className="w-full border border-base-200 bg-base-100 text-base-content rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary"
+              className='select select-bordered w-full'
               value={shareType}
-              onChange={(e) => setShareType(e.target.value as any)}
+              onChange={e => setShareType(e.target.value as any)}
             >
-              <option value="equal">Equal</option>
-              <option value="percentage">Percentage</option>
-              <option value="fixed">Fixed</option>
+              <option value='equal'>Split Equally</option>
+              <option value='percentage'>By Percentage</option>
+              <option value='fixed'>By Fixed Amount</option>
             </select>
-          </div>
 
-          {/* Participants */}
-          <div>
-            <label className="block text-base-content mb-2 font-medium">Participants</label>
-            <div className="border border-base-200 bg-base-100 rounded-lg p-4 space-y-3">
-              {participants.map((p) => (
-                <div key={p.id} className="flex items-center justify-between">
-                  <label className="flex items-center gap-3 text-base-content">
-                    <input
-                      type="checkbox"
-                      checked={p.selected}
-                      onChange={() => toggleParticipant(p.id)}
-                      className="w-5 h-5"
-                    />
-                    {p.name}
-                  </label>
+            <div className='space-y-2'>
+              <h3 className='font-medium text-base-content'>Participants</h3>
+              <div className='space-y-2 max-h-48 overflow-y-auto p-2 bg-base-200 rounded-md'>
+                {participants.map(p => (
+                  <div key={p.id} className='flex items-center justify-between'>
+                    <label className='label cursor-pointer'>
+                      <input
+                        type='checkbox'
+                        className='checkbox checkbox-primary mr-2'
+                        checked={p.selected}
+                        onChange={() => toggleParticipant(p.id)}
+                      />
+                      <span className='label-text'>{p.name}</span>
+                    </label>
 
-                  {p.selected && shareType !== "equal" && (
-                    <input
-                      type="number"
-                      className="w-28 border border-base-200 bg-base-100 text-base-content rounded-lg p-2 text-right focus:outline-none focus:ring-2 focus:ring-primary"
-                      placeholder={shareType === "percentage" ? "%" : "Amount"}
-                      value={p.share_value}
-                      onChange={(e) => updateShareValue(p.id, e.target.value)}
-                    />
-                  )}
-                </div>
-              ))}
+                    {p.selected && shareType !== 'equal' && (
+                      <input
+                        type='number'
+                        className='input input-sm input-bordered w-28 text-right'
+                        placeholder={shareType === 'percentage' ? '%' : 'Amount'}
+                        value={p.share_value}
+                        onChange={e => updateShareValue(p.id, e.target.value)}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </>
-      )}
+        )}
 
-      {/* Validation Message */}
-      {validationMessage && (
-        <div className="text-error text-sm">{validationMessage}</div>
-      )}
+        {validationMessage && (
+          <div className='alert alert-error shadow-lg text-sm'>
+            <div>
+              <span>{validationMessage}</span>
+            </div>
+          </div>
+        )}
 
-      {/* Buttons */}
-      <div className="flex justify-end gap-4">
-
-    <button
-      className={`px-5 py-3 rounded-lg text-white font-medium transition-all duration-200 shadow ${
-      isSaveDisabled
-        ? "bg-base-200 cursor-not-allowed opacity-70 text-base-content/60"
-        : "bg-primary text-primary-content hover:opacity-95"
-      }`}
-      onClick={handleSubmit}
-      disabled={isSaveDisabled}
-    >
-      Save Expense
-    </button>
-       
+        <div className='flex justify-end pt-4'>
+          <button
+            className='btn btn-primary w-full md:w-auto'
+            onClick={handleSubmit}
+            disabled={isSaveDisabled}
+          >
+            Save Expense
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -39,49 +39,48 @@ const users: User[] = [
 const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-base-200 p-4 space-y-6">
-      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+      <h1 className="text-3xl font-bold text-base-content mb-6">Dashboard</h1>
 
       {/* Summary Section */}
-      <div className="bg-base-100 p-5 rounded-2xl shadow-lg flex justify-between items-center border-l-4 border-primary">
-        <div>
-          <h1 className="text-xl font-bold text-base-content mb-1">Summary</h1>
-          <p className="text-base-content/80 text-sm">{summary.overallStatus}</p>
-        </div>
-
-        <div className="text-right">
-          <p className="text-sm text-base-content/60">Net Balance</p>
-          <p
-            className={`text-lg font-semibold ${
-              summary.netBalance < 0 ? "text-error" : "text-success"
-            }`}
-          >
-            ${summary.netBalance}
-          </p>
+      <div className="bg-base-100 p-6 rounded-2xl shadow-lg border-l-4 border-primary transition-transform transform hover:scale-105">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-xl font-bold text-base-content mb-1">Summary</h2>
+            <p className="text-base-content/80 text-sm">{summary.overallStatus}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-base-content/60">Net Balance</p>
+            <p
+              className={`text-2xl font-semibold ${
+                summary.netBalance > 0 ? "text-success" : "text-error"
+              }`}
+            >
+              ${summary.netBalance}
+            </p>
+          </div>
         </div>
       </div>
 
       {/* Users List */}
       <div className="space-y-4">
-  <h1 className="text-2xl font-bold mb-4">Users</h1>
-
+        <h2 className="text-2xl font-bold mb-4 text-base-content">Recent Activity</h2>
         {users.map((user) => {
-          const amountColor = user.balance < 0 ? "text-green-600" : "text-red-500";
+          const amountColor = user.balance < 0 ? "text-success" : "text-error";
 
           return (
             <div
               key={user.userId}
-              className="bg-base-100 p-4 rounded-2xl shadow-md flex justify-between items-center border-l-4 border-primary"
+              className="bg-base-100 p-4 rounded-2xl shadow-md flex justify-between items-center border-l-4 border-secondary transition-transform transform hover:scale-105"
             >
               <div>
-                <h2 className="text-lg font-semibold">{user.userName}</h2>
+                <h3 className="text-lg font-semibold text-base-content">{user.userName}</h3>
                 <p className="text-base-content/60 text-sm">{user.userEmail}</p>
               </div>
-
               <div className="text-right">
-                <p className={`font-bold text-lg ${amountColor}`}>
+                <p className={`font-bold text-xl ${amountColor}`}>
                   ${Math.abs(user.balance)}
                 </p>
-                <p className="text-base-content/60 text-xs">{user.status}</p>
+                <p className="text-base-content/60 text-xs capitalize">{user.status}</p>
               </div>
             </div>
           );
