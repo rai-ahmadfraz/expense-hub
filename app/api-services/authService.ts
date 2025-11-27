@@ -19,7 +19,7 @@ export const login = async (formData:any) => {
    const requestData = Object.fromEntries(formData.entries()) as LoginFormData;
    const {email,password} = requestData;
 
-  const res = await fetch(`${process.env.API_URL}/login`, {
+  const res = await fetch(`${process.env.API_URL || "http://ec2-35-170-64-96.compute-1.amazonaws.com:8000"}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -58,7 +58,7 @@ export const login = async (formData:any) => {
 export const registerUser = async (formData:any) => {
     
    const requestData = Object.fromEntries(formData.entries()) as RegisterFormData;
-  const res = await fetch(`${process.env.API_URL}/register`, {
+  const res = await fetch(`${process.env.API_URL || "http://ec2-35-170-64-96.compute-1.amazonaws.com:8000"}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(requestData),
