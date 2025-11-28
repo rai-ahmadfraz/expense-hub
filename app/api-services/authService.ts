@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { redirect  } from "next/navigation";
-import { setFlashMessage } from "./commonService";
+import { setFlashMessage, setToken, setUser } from "./commonService";
 interface LoginFormData {
   email: string;
   password: string;
@@ -30,23 +30,9 @@ export const login = async (formData:any) => {
       // credentials: 'include' // Include cookies (e.g., access_token) in the request
     });
   const loginUser = await res.json();
-   const cookieStore = await cookies();
   if (loginUser.access_token) {
-    cookieStore.set("token", loginUser.access_token, {
-      httpOnly: true,
-      secure: true,
-      path: "/",
-    });
-
-    cookieStore.set(
-      "login-user",
-      JSON.stringify(loginUser),
-      {
-        httpOnly: true,
-        secure: true,
-        path: "/",
-      }
-    );
+    await setToken(loginUser.access_token);
+    await setUser(loginUser);
     await setFlashMessage("Login Successful");
     redirect("/dashboard");
   } else {
@@ -66,6 +52,7 @@ export const registerUser = async (formData:any) => {
 
   const registeredUser = await res.json();
   if(registeredUser.id){
+    await setFlashMessage("Registration Successful");
     redirect('/login');
   }else{
     await setFlashMessage("Registration Failed: Invalid data  provided");
@@ -75,5 +62,6 @@ export const registerUser = async (formData:any) => {
 
 export const logout = async () => {
   (await cookies()).delete("token");
+    await setFlashMessage("Logout Successful");
   redirect("/login");
 }

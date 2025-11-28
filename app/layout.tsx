@@ -1,7 +1,8 @@
 import "./globals.css";
 import ToastProvider from "./components/ToastProvider";
-import { getTheme,getFlashMessage } from "@/app/api-services/commonService";
+import { getTheme } from "@/app/api-services/commonService";
 import React from "react";
+import FlashMessageWrapper from "./components/FlashMessageWrapper";
 
 export default async function RootLayout({
   children,
@@ -10,14 +11,10 @@ export default async function RootLayout({
 }) {
 
   const theme = await getTheme();
-  const flashMessage = await getFlashMessage();
   return (
     <html lang="en" data-theme={theme || "light"}>
       <body>
-        <div>
-          {/* Navbar could go here */}  
-          <p>{flashMessage}</p>
-        </div>
+        <FlashMessageWrapper/>
         {children}
         <ToastProvider />
       </body>
