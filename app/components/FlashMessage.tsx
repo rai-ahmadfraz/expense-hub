@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { deleteFlashMessage } from "@/app/api-services/commonService";
 
 export default function FlashMessage({ flashMessage }: { flashMessage: string }) {
   const [visible, setVisible] = useState(false);
@@ -7,10 +8,12 @@ export default function FlashMessage({ flashMessage }: { flashMessage: string })
   useEffect(() => {
     if (!flashMessage) return;
 
-    // Reset visibility every time flashMessage changes
     setVisible(true);
 
-    const timer = setTimeout(() => setVisible(false), 3000);
+    const timer = setTimeout(async () => {
+      setVisible(false);
+      await deleteFlashMessage();
+    }, 3000);
     return () => clearTimeout(timer);
   }, [flashMessage]);
 

@@ -8,6 +8,10 @@ export async function getExpenseDashboardSummary() {
   return await apiFetch("/expenses/summary", { method: "GET" }) || [];
 }
 
+export async function getExpenseByFriendId(id: number) {
+  return await apiFetch(`/expenses/member/${id}`, { method: "GET" }) || [];
+}
+
 export const saveExpense = async (formData:any) => {
     console.log("Form Data in Service:", formData);
   await apiFetch("/expenses", { method: "POST",body: JSON.stringify(formData) }) || [];

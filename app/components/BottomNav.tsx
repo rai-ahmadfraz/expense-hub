@@ -84,7 +84,7 @@ const BottomMenu = () => {
               {item.name === "Add" ? (
                 <div className="relative -top-6">
                   <div className="bg-primary text-primary-content p-4 rounded-full shadow-lg">
-                    <div className="size-6">
+                    <div className="size-4">
                       {item.icon}
                     </div>
                   </div>
@@ -94,7 +94,7 @@ const BottomMenu = () => {
                 <div className={`p-2 rounded-lg transition-colors ${
                   active === item.name ? "bg-base-200" : ""
                 }`}>
-                  <div className="size-5">
+                  <div className="size-4">
                     {item.icon}
                   </div>
                 </div>
