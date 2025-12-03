@@ -1,12 +1,22 @@
-"use client";
+'use client';
 import { useState, useEffect } from "react";
 import { getFriends } from "@/app/api-services/friendService";
 import { saveExpense,getLoginUser } from "@/app/api-services/expenseService";
 import Link from "next/link";
 
 const AddExpense = () => {
-
   const [currentUser, setCurrentUser] = useState<{ id: number; name: string } | null>(null);
+  const [name, setName] = useState("");
+  const [amount, setAmount] = useState("");
+  const [paidBy, setPaidBy] = useState("");
+  const [isPersonal, setIsPersonal] = useState<boolean | null>(false);
+  const [shareType, setShareType] = useState<"equal" | "percentage" | "fixed">("equal");
+  const [users, setUsers] = useState<Array<{ id: number; name: string }>>([]);
+  const [participants, setParticipants] = useState<
+    Array<{ id: number; name: string; selected: boolean; share_value: string; fixed?: boolean }>
+  >([]);
+  const [validationMessage, setValidationMessage] = useState("");
+  const [saving, setSaving] = useState(false); // <-- saving state
 
   // Fetch logged-in user
   useEffect(() => {
@@ -18,22 +28,8 @@ const AddExpense = () => {
         console.error("Failed to fetch current user:", error);
       }
     };
-
     fetchCurrentUser();
   }, []);
-
-  const [name, setName] = useState("");
-  const [amount, setAmount] = useState("");
-  const [paidBy, setPaidBy] = useState("");
-  const [isPersonal, setIsPersonal] = useState<boolean | null>(false);
-  const [shareType, setShareType] = useState<"equal" | "percentage" | "fixed">("equal");
-
-  const [users, setUsers] = useState<Array<{ id: number; name: string }>>([]);
-  const [participants, setParticipants] = useState<
-    Array<{ id: number; name: string; selected: boolean; share_value: string; fixed?: boolean }>
-  >([]);
-
-  const [validationMessage, setValidationMessage] = useState("");
 
   // Load friends
   useEffect(() => {
@@ -53,54 +49,33 @@ const AddExpense = () => {
     if (!currentUser) return;
 
     const allParticipants = [
-      {
-        id: currentUser.id,
-        name: currentUser.name,
-        selected: true,
-        share_value: "",
-        fixed: true, // always selected
-      },
+      { id: currentUser.id, name: currentUser.name, selected: true, share_value: "", fixed: true },
       ...users
         .filter((u) => u.id !== currentUser.id)
-        .map((u) => ({
-          id: u.id,
-          name: u.name,
-          selected: false,
-          share_value: "",
-        })),
+        .map((u) => ({ id: u.id, name: u.name, selected: false, share_value: "" })),
     ];
-
     setParticipants(allParticipants);
   }, [users, currentUser]);
 
   // Auto-fill equal shares
   useEffect(() => {
     if (shareType !== "equal") return;
-
     const selected = participants.filter((p) => p.selected);
     if (selected.length === 0) return;
-
     const equalValue = (Number(amount) / selected.length).toFixed(2);
     setParticipants((prev) =>
-      prev.map((p) => ({
-        ...p,
-        share_value: p.selected ? equalValue : "",
-      }))
+      prev.map((p) => ({ ...p, share_value: p.selected ? equalValue : "" }))
     );
   }, [shareType, amount, participants.map((p) => p.selected).join(",")]);
 
   const toggleParticipant = (id: number) => {
     const participant = participants.find((p) => p.id === id);
-    if (participant?.fixed) return; // cannot unselect current user
-    setParticipants((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, selected: !p.selected } : p))
-    );
+    if (participant?.fixed) return;
+    setParticipants((prev) => prev.map((p) => (p.id === id ? { ...p, selected: !p.selected } : p)));
   };
 
   const updateShareValue = (id: number, value: string) => {
-    setParticipants((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, share_value: value } : p))
-    );
+    setParticipants((prev) => prev.map((p) => (p.id === id ? { ...p, share_value: value } : p)));
   };
 
   // Validate shares
@@ -109,14 +84,11 @@ const AddExpense = () => {
       setValidationMessage("");
       return;
     }
-
     const selected = participants.filter((p) => p.selected);
-
     if (selected.length === 0) {
       setValidationMessage("Select at least one participant");
       return;
     }
-
     if (shareType === "percentage") {
       const total = selected.reduce((sum, p) => sum + Number(p.share_value || 0), 0);
       if (total !== 100) {
@@ -124,7 +96,6 @@ const AddExpense = () => {
         return;
       }
     }
-
     if (shareType === "fixed") {
       const total = selected.reduce((sum, p) => sum + Number(p.share_value || 0), 0);
       if (Number(amount) && total !== Number(amount)) {
@@ -132,43 +103,45 @@ const AddExpense = () => {
         return;
       }
     }
-
     setValidationMessage("");
   }, [participants, shareType, amount, isPersonal]);
 
   const handleSubmit = async () => {
     if (validationMessage) return;
-
-    const selected = participants.filter((p) => p.selected);
-
-    const payload = {
-      name,
-      amount: Number(amount),
-      paid_id: Number(paidBy),
-      is_personal: isPersonal,
-      participants: isPersonal
-        ? undefined
-        : selected.map((p) =>
-            shareType === "equal"
-              ? { id: p.id, share_type: "equal" }
-              : { id: p.id, share_type: shareType, share_value: Number(p.share_value) }
-          ),
-    };
-
-    console.log("Final Payload:", payload);
-    await saveExpense(payload);
+    setSaving(true); // <-- start saving
+    try {
+      const selected = participants.filter((p) => p.selected);
+      const payload = {
+        name,
+        amount: Number(amount),
+        paid_id: Number(paidBy),
+        is_personal: isPersonal,
+        participants: isPersonal
+          ? undefined
+          : selected.map((p) =>
+              shareType === "equal"
+                ? { id: p.id, share_type: "equal" }
+                : { id: p.id, share_type: shareType, share_value: Number(p.share_value) }
+            ),
+      };
+      console.log("Final Payload:", payload);
+      await saveExpense(payload);
+      alert("Expense saved successfully!");
+      // optionally reset form
+    } catch (error) {
+      console.error("Failed to save expense:", error);
+    } finally {
+      setSaving(false); // <-- stop saving
+    }
   };
 
-  const isSaveDisabled =
-    Boolean(validationMessage) || !name || !amount || (!isPersonal && !paidBy);
+  const isSaveDisabled = Boolean(validationMessage) || !name || !amount || (!isPersonal && !paidBy) || saving;
 
   return (
     <div className="max-w-2xl mx-auto bg-base-100 p-8 rounded-2xl shadow-lg space-y-6 pb-28">
       <div className="flex justify-between items-center mt-2 mb-3">
         <h2 className="text-2xl font-semibold">Add Expense</h2>
-        <Link href="/dashboard/expenses" className="text-base-content/70 hover:text-base-content text-lg">
-          Back
-        </Link>
+        <Link href="/dashboard/expenses" className="text-base-content/70 hover:text-base-content text-lg">Back</Link>
       </div>
 
       {/* Expense Name */}
@@ -196,32 +169,21 @@ const AddExpense = () => {
 
       {/* Is Personal */}
       <div>
-  <span className="block text-base-content mb-2 font-medium">Is Personal?</span>
+        <span className="block text-base-content mb-2 font-medium">Is Personal?</span>
         <div className="flex gap-6">
-            <label className="flex items-center gap-2">
-            <input
-              type="radio"
-              name="isPersonal"
-              onChange={() => setIsPersonal(true)}
-              className="w-5 h-5"
-            />
+          <label className="flex items-center gap-2">
+            <input type="radio" name="isPersonal" onChange={() => setIsPersonal(true)} className="w-5 h-5" />
             Yes
           </label>
-            <label className="flex items-center gap-2">
-            <input
-              type="radio"
-              name="isPersonal"
-              onChange={() => setIsPersonal(false)}
-              className="w-5 h-5"
-            />
+          <label className="flex items-center gap-2">
+            <input type="radio" name="isPersonal" onChange={() => setIsPersonal(false)} className="w-5 h-5" />
             No
           </label>
         </div>
       </div>
 
       {!isPersonal && (
-        <>          
-
+        <>
           {/* Share Type */}
           <div>
             <label className="block text-base-content mb-2 font-medium">Share Type</label>
@@ -243,16 +205,9 @@ const AddExpense = () => {
               {participants.map((p) => (
                 <div key={p.id} className="flex items-center justify-between">
                   <label className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={p.selected}
-                      onChange={() => toggleParticipant(p.id)}
-                      className="w-5 h-5"
-                      disabled={p.fixed} // disable current user
-                    />
+                    <input type="checkbox" checked={p.selected} onChange={() => toggleParticipant(p.id)} className="w-5 h-5" disabled={p.fixed} />
                     {p.name} {p.fixed && "(You)"}
                   </label>
-
                   {p.selected && shareType !== "equal" && (
                     <input
                       type="number"
@@ -276,35 +231,33 @@ const AddExpense = () => {
               onChange={(e) => setPaidBy(e.target.value)}
             >
               <option value="">Select person</option>
-              {participants
-                .filter((p) => p.selected) // only selected participants
-                .map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} {p.fixed && "(You)"}
-                  </option>
-                ))}
+              {participants.filter((p) => p.selected).map((p) => (
+                <option key={p.id} value={p.id}>{p.name} {p.fixed && "(You)"}</option>
+              ))}
             </select>
           </div>
         </>
       )}
 
       {/* Validation Message */}
-      {validationMessage && (
-        <div className="text-red-500 text-sm">{validationMessage}</div>
-      )}
+      {validationMessage && <div className="text-red-500 text-sm">{validationMessage}</div>}
 
       {/* Buttons */}
-        <div className="flex justify-end gap-4">
+      <div className="flex justify-end gap-4">
         <button
           className={`px-5 py-3 rounded-lg text-white font-medium transition-all duration-200 shadow ${
-            isSaveDisabled
-              ? "bg-gray-300 cursor-not-allowed opacity-70"
-              : "bg-gray-800 hover:bg-gray-900"
+            isSaveDisabled ? "bg-gray-300 cursor-not-allowed opacity-70" : "bg-gray-800 hover:bg-gray-900"
           }`}
           onClick={handleSubmit}
           disabled={isSaveDisabled}
         >
-          Save Expense
+          {saving ? (
+            <>
+              <span className="loading loading-spinner loading-sm"></span> Saving...
+            </>
+          ) : (
+            "Save Expense"
+          )}
         </button>
       </div>
     </div>

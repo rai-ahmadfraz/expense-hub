@@ -14,8 +14,8 @@ const SearchFriends = () => {
   const [results, setResults] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [emailError, setEmailError] = useState('');
+  const [addingFriendIds, setAddingFriendIds] = useState<number[]>([]); // Track loading per user
 
-  // Email validation function
   const isValidEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -23,23 +23,17 @@ const SearchFriends = () => {
 
   const handleSearch = async () => {
     const value = searchTerm.trim();
-
     if (!value) {
       setResults([]);
       setEmailError('Please enter an email address');
       return;
     }
-
-    // Validate email format
     if (!isValidEmail(value)) {
       setEmailError('Please enter a valid email address');
       setResults([]);
       return;
     }
-
-    // Clear any previous errors
     setEmailError('');
-
     setIsSearching(true);
     try {
       const list = await searchUsers(value);
@@ -54,27 +48,26 @@ const SearchFriends = () => {
   }
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
+    if (e.key === 'Enter') handleSearch();
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchTerm(value);
-    
-    // Clear error when user starts typing
-    if (emailError && value.trim()) {
-      setEmailError('');
-    }
+    if (emailError && value.trim()) setEmailError('');
   }
 
   const addUser = async (userId: number) => {
+    // Add userId to loading array
+    setAddingFriendIds((prev) => [...prev, userId]);
     try {
       await addFriend(userId);
       alert('Friend request sent successfully!');
     } catch (error) {
       console.error('Failed to add friend:', error);
+    } finally {
+      // Remove userId from loading array
+      setAddingFriendIds((prev) => prev.filter((id) => id !== userId));
     }
   }
 
@@ -117,8 +110,6 @@ const SearchFriends = () => {
             )}
           </button>
         </div>
-        
-        {/* Error message */}
         {emailError && (
           <div className="mt-2 text-error text-sm flex items-center">
             <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -129,27 +120,36 @@ const SearchFriends = () => {
         )}
       </div>
 
-      {/* Results */}
       <div className="mt-6 md:mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-        {results.map((u) => (
-          <div key={u.id} className="bg-base-100 rounded-lg shadow-md p-4 md:p-6 hover:shadow-lg transition-shadow duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-bold text-base md:text-lg text-base-content">{u.name}</p>
-                <p className="text-sm text-base-content/70">{u.email}</p>
+        {results.map((u) => {
+          const isAdding = addingFriendIds.includes(u.id);
+          return (
+            <div key={u.id} className="bg-base-100 rounded-lg shadow-md p-4 md:p-6 hover:shadow-lg transition-shadow duration-300">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-bold text-base md:text-lg text-base-content">{u.name}</p>
+                  <p className="text-sm text-base-content/70">{u.email}</p>
+                </div>
+                <button
+                  className="btn btn-primary btn-sm md:btn-md rounded-full"
+                  onClick={() => addUser(u.id)}
+                  disabled={isAdding}
+                >
+                  {isAdding ? (
+                    <>
+                      <span className="loading loading-spinner loading-sm"></span>
+                      Adding...
+                    </>
+                  ) : (
+                    'Add Friend'
+                  )}
+                </button>
               </div>
-              <button
-                className="btn btn-primary btn-sm md:btn-md rounded-full"
-                onClick={() => addUser(u.id)}
-              >
-                Add Friend
-              </button>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
-      {/* No results message */}
       {results.length === 0 && searchTerm && !isSearching && !emailError && (
         <div className="text-center py-8">
           <p className="text-base-content/70">No users found with this email address.</p>

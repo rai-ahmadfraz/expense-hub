@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import {login} from '../api-services/authService'
+import SubmitButton from '../components/SubmitButton';
 const LoginPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-base-200">
@@ -35,7 +36,8 @@ const LoginPage = () => {
               />
             </div>
 
-            <button type="submit" className="btn btn-primary w-full">Login</button>
+            {/* <button type="submit" className="btn btn-primary w-full">Login</button> */}
+            <SubmitButton className="w-full">Login</SubmitButton>
 
           </form>
 
