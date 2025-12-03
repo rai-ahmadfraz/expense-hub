@@ -1,4 +1,3 @@
-"use server";
 import React from "react";
 import { getExpenseDashboardSummary } from "@/app/api-services/expenseService";
 import Link from "next/link";
