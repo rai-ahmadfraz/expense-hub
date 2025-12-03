@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import {registerUser} from '../api-services/authService'
+import SubmitButton from "../components/SubmitButton";
 const RegisterPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-base-200">
@@ -48,9 +49,7 @@ const RegisterPage = () => {
                 required
               />
             </div>
-
-            <button type="submit" className="btn btn-primary w-full">Sign Up</button>
-
+            <SubmitButton className="w-full">Sign Up</SubmitButton>
           </form>
 
           <p className="text-center text-sm mt-2">

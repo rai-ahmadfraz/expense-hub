@@ -16,8 +16,8 @@ interface RegisterFormData{
 
 export const login = async (formData:any) => {
     
-   const requestData = Object.fromEntries(formData.entries()) as LoginFormData;
-   const {email,password} = requestData;
+  const requestData = Object.fromEntries(formData.entries()) as LoginFormData;
+  const {email,password} = requestData;
 
   const res = await fetch(`${process.env.API_URL || "http://ec2-35-170-64-96.compute-1.amazonaws.com:8100"}/login`, {
       method: 'POST',
@@ -43,19 +43,27 @@ export const login = async (formData:any) => {
 
 export const registerUser = async (formData:any) => {
     
-   const requestData = Object.fromEntries(formData.entries()) as RegisterFormData;
+  const requestData = Object.fromEntries(formData.entries()) as RegisterFormData;
+
+  const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]).{8,}$/;
+
+  if (!requestData.password || requestData.password.length < 8 || !passwordRegex.test(requestData.password)) {
+    await setFlashMessage("Password must have 8+ chars, 1 uppercase, 1 number, 1 symbol");
+    return;
+  }
   const res = await fetch(`${process.env.API_URL || "http://ec2-35-170-64-96.compute-1.amazonaws.com:8100"}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(requestData),
     });
 
-  const registeredUser = await res.json();
-  if(registeredUser.id){
+  const response = await res.json();
+  console.log("Registered User:", response);
+  if(response.id){
     await setFlashMessage("Registration Successful");
     redirect('/login');
   }else{
-    await setFlashMessage("Registration Failed: Invalid data  provided");
+    await setFlashMessage(`${response.message}` || "Registration Failed: Invalid data  provided");
   }
 }
 
