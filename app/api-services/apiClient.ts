@@ -19,8 +19,9 @@ async function apiFetch(endpoint: string, options: RequestInit = {}) {
       "Authorization": `Bearer ${token}`,
       ...(options.headers || {})
     },
-    cache: "force-cache",      // Use cached response
-    next: { revalidate: 60 }
+    cache: "no-store"
+    // cache: "force-cache",      // Use cached response
+    // next: { revalidate: 60 }
   });
 
   if (!res.ok) {
