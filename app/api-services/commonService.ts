@@ -47,6 +47,12 @@ export const getToken = async () => {
   return cookieStore.get("token")?.value || '' ;
 }
 
+export const removeToken = async () => {
+  const cookieStore = await cookies();
+  cookieStore.set("login-user",'', cookiesOptions);
+  cookieStore.set("token",'',cookiesOptions);
+}
+
 
 export const setUser = async (user:any) => {
   const cookieStore = await cookies();
