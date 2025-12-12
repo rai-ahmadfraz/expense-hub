@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from "react";
 import { getFriends } from "@/app/api-services/friendService";
-import { saveExpense,getLoginUser } from "@/app/api-services/expenseService";
+import { saveExpense, getLoginUser } from "@/app/api-services/expenseService";
 import Link from "next/link";
 
 const AddExpense = () => {
@@ -10,13 +10,14 @@ const AddExpense = () => {
   const [amount, setAmount] = useState("");
   const [paidBy, setPaidBy] = useState("");
   const [isPersonal, setIsPersonal] = useState<boolean | null>(false);
+  const [personalType, setPersonalType] = useState<"in" | "out">("out"); // New state for in/out
   const [shareType, setShareType] = useState<"equal" | "percentage" | "fixed">("equal");
   const [users, setUsers] = useState<Array<{ id: number; name: string }>>([]);
   const [participants, setParticipants] = useState<
     Array<{ id: number; name: string; selected: boolean; share_value: string; fixed?: boolean }>
   >([]);
   const [validationMessage, setValidationMessage] = useState("");
-  const [saving, setSaving] = useState(false); // <-- saving state
+  const [saving, setSaving] = useState(false);
 
   // Fetch logged-in user
   useEffect(() => {
@@ -59,18 +60,18 @@ const AddExpense = () => {
 
   // Auto-fill equal shares
   useEffect(() => {
-    if (shareType !== "equal") return;
+    if (isPersonal || shareType !== "equal") return;
     const selected = participants.filter((p) => p.selected);
     if (selected.length === 0) return;
     const equalValue = (Number(amount) / selected.length).toFixed(2);
     setParticipants((prev) =>
       prev.map((p) => ({ ...p, share_value: p.selected ? equalValue : "" }))
     );
-  }, [shareType, amount, participants.map((p) => p.selected).join(",")]);
+  }, [shareType, amount, participants.map((p) => p.selected).join(","), isPersonal]);
 
   const toggleParticipant = (id: number) => {
     const participant = participants.find((p) => p.id === id);
-    if (participant?.fixed) return;
+    if (participant?.fixed || isPersonal) return;
     setParticipants((prev) => prev.map((p) => (p.id === id ? { ...p, selected: !p.selected } : p)));
   };
 
@@ -108,14 +109,15 @@ const AddExpense = () => {
 
   const handleSubmit = async () => {
     if (validationMessage) return;
-    setSaving(true); // <-- start saving
+    setSaving(true);
     try {
       const selected = participants.filter((p) => p.selected);
       const payload = {
         name,
         amount: Number(amount),
-        paid_id: Number(paidBy),
+        paid_id: isPersonal ? currentUser?.id : Number(paidBy), // For personal expenses, current user pays
         is_personal: isPersonal,
+        type: isPersonal ? personalType : "out", // Add type field
         participants: isPersonal
           ? undefined
           : selected.map((p) =>
@@ -124,14 +126,17 @@ const AddExpense = () => {
                 : { id: p.id, share_type: shareType, share_value: Number(p.share_value) }
             ),
       };
-      console.log("Final Payload:", payload);
       await saveExpense(payload);
       alert("Expense saved successfully!");
-      // optionally reset form
+      // Optionally reset form
+      // setName("");
+      // setAmount("");
+      // setPaidBy("");
+      // setPersonalType("out");
     } catch (error) {
       console.error("Failed to save expense:", error);
     } finally {
-      setSaving(false); // <-- stop saving
+      setSaving(false);
     }
   };
 
@@ -172,17 +177,67 @@ const AddExpense = () => {
         <span className="block text-base-content mb-2 font-medium">Is Personal?</span>
         <div className="flex gap-6">
           <label className="flex items-center gap-2">
-            <input type="radio" name="isPersonal" onChange={() => setIsPersonal(true)} className="w-5 h-5" />
+            <input 
+              type="radio" 
+              name="isPersonal" 
+              checked={isPersonal === true}
+              onChange={() => setIsPersonal(true)} 
+              className="w-5 h-5" 
+            />
             Yes
           </label>
           <label className="flex items-center gap-2">
-            <input type="radio" name="isPersonal" onChange={() => setIsPersonal(false)} className="w-5 h-5" />
+            <input 
+              type="radio" 
+              name="isPersonal" 
+              checked={isPersonal === false}
+              onChange={() => setIsPersonal(false)} 
+              className="w-5 h-5" 
+            />
             No
           </label>
         </div>
       </div>
 
-      {!isPersonal && (
+      {isPersonal ? (
+        // Personal Expense Section
+        <div>
+          <span className="block text-base-content mb-2 font-medium">Funds are:</span>
+          <div className="flex gap-6">
+            <label className="flex items-center gap-2">
+              <input 
+                type="radio" 
+                name="personalType" 
+                checked={personalType === "out"}
+                onChange={() => setPersonalType("out")} 
+                className="w-5 h-5" 
+              />
+              <span className="text-red-600 font-medium">Outgoing (Expense)</span>
+              <span className="text-base-content/70 text-sm">- Money going out</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input 
+                type="radio" 
+                name="personalType" 
+                checked={personalType === "in"}
+                onChange={() => setPersonalType("in")} 
+                className="w-5 h-5" 
+              />
+              <span className="text-green-600 font-medium">Incoming (Income)</span>
+              <span className="text-base-content/70 text-sm">+ Money coming in</span>
+            </label>
+          </div>
+          <div className="mt-4 p-3 bg-base-200 rounded-lg">
+            <p className="text-base-content/80 text-sm">
+              {personalType === "out" 
+                ? "This will be recorded as a personal expense (money spent)."
+                : "This will be recorded as personal income (money received)."
+              }
+            </p>
+          </div>
+        </div>
+      ) : (
+        // Group Expense Section (unchanged)
         <>
           {/* Share Type */}
           <div>
@@ -205,7 +260,13 @@ const AddExpense = () => {
               {participants.map((p) => (
                 <div key={p.id} className="flex items-center justify-between">
                   <label className="flex items-center gap-3">
-                    <input type="checkbox" checked={p.selected} onChange={() => toggleParticipant(p.id)} className="w-5 h-5" disabled={p.fixed} />
+                    <input 
+                      type="checkbox" 
+                      checked={p.selected} 
+                      onChange={() => toggleParticipant(p.id)} 
+                      className="w-5 h-5" 
+                      disabled={p.fixed} 
+                    />
                     {p.name} {p.fixed && "(You)"}
                   </label>
                   {p.selected && shareType !== "equal" && (
@@ -256,7 +317,7 @@ const AddExpense = () => {
               <span className="loading loading-spinner loading-sm"></span> Saving...
             </>
           ) : (
-            "Save Expense"
+            `Save ${isPersonal ? (personalType === "out" ? "Expense" : "Income") : "Expense"}`
           )}
         </button>
       </div>

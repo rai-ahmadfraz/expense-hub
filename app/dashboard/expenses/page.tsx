@@ -1,5 +1,6 @@
 import React from "react";
-import { getHistory } from "@/app/api-services/expenseService";
+import { getExpenseHistory } from "@/app/api-services/expenseService";
+import Link from "next/link";
 
 interface User {
   id: number;
@@ -26,21 +27,31 @@ interface Expense {
   totalAmount: string;
   is_personal: boolean;
   paidBy: User;
+  type:string;
   createdAt: string;
   updatedAt: string;
   members: Member[];
 }
 
 const Expenses: React.FC = async () => {
-  const expenseHistory = await getHistory();
+  const expenseHistory = await getExpenseHistory();
   const expenses = Array.isArray(expenseHistory) 
     ? expenseHistory 
     : expenseHistory?.expenses || [];
 
   return (
     <div className="min-h-screen bg-base-200 p-4 sm:p-6 space-y-4 sm:space-y-6 mb-20">
-      <h1 className="text-xl sm:text-2xl font-bold px-2 sm:px-0">Expenses History</h1>
-      
+      <div className="flex justify-between items-center px-2 sm:px-0">
+        <h1 className="text-xl sm:text-2xl font-bold">
+          Expenses History
+        </h1>
+        <Link 
+          href="/dashboard/expenses/personal" 
+          className="btn btn-outline btn-sm sm:btn-md text-primary hover:text-white hover:bg-primary border-primary"
+        >
+          Check Personal
+        </Link>
+      </div>
       {expenses.length > 0 ? (
         <div className="space-y-4 sm:space-y-6">
           {expenses.map((expense: Expense) => (

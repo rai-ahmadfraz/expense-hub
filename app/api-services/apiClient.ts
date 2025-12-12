@@ -1,8 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-
-const API_URL = process.env.API_URL ||"https://api.expensehub.online";
+import { API_URL } from "@/lib/config";
 
 const getToken = async () => {
   const cookie = await cookies();
